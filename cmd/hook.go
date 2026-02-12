@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/stormingluke/autoenv/internal/shell"
+	"github.com/stormingluke/autoenv/internal/adapter/shell"
 )
 
 var hookCmd = &cobra.Command{

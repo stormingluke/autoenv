@@ -6,9 +6,6 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/stormingluke/autoenv/internal/config"
-	handler "github.com/stormingluke/autoenv/internal/export"
-	"github.com/stormingluke/autoenv/internal/store"
 )
 
 var exportCmd = &cobra.Command{
@@ -17,35 +14,20 @@ var exportCmd = &cobra.Command{
 	Args:   cobra.ExactArgs(1),
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		shellType := args[0]
-		shellPID := getShellPID()
-
-		cfg := config.Load()
-		if err := cfg.EnsureDir(); err != nil {
-			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
-			return
-		}
-
-		turso, err := store.OpenTurso(cfg)
+		b, err := bootstrap()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			return
 		}
-		defer turso.Close()
+		defer b.cc.CloseAll()
 
-		sessDB, err := store.OpenSessionsDB(cfg.SessionsDBPath)
+		cwd, err := os.Getwd()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			return
 		}
-		defer sessDB.Close()
 
-		h := handler.NewHandler(
-			store.NewProjectRepo(turso.DB),
-			store.NewSessionRepo(sessDB),
-		)
-
-		output, err := h.Export(shellType, shellPID)
+		output, err := b.app.Export.Export(args[0], getShellPID(), cwd)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			return

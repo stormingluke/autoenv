@@ -6,29 +6,20 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"github.com/stormingluke/autoenv/internal/config"
-	"github.com/stormingluke/autoenv/internal/store"
 )
 
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List registered projects",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := config.Load()
-		if err := cfg.EnsureDir(); err != nil {
-			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
-			os.Exit(1)
-		}
-
-		turso, err := store.OpenTurso(cfg)
+		b, err := bootstrap()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			os.Exit(1)
 		}
-		defer turso.Close()
+		defer b.cc.CloseAll()
 
-		repo := store.NewProjectRepo(turso.DB)
-		projects, err := repo.ListAll()
+		projects, err := b.app.List.ListProjects()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			os.Exit(1)
