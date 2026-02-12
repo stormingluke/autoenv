@@ -1,0 +1,63 @@
+version: '3'
+
+vars:
+  BINARY: autoenv
+
+env:
+  CGO_ENABLED: '1'
+
+tasks:
+  default:
+    desc: Run CI pipeline (lint, test, build)
+    aliases: [ci]
+    cmds:
+      - task: lint
+      - task: test
+      - task: build
+
+  build:
+    desc: Build the autoenv binary
+    cmds:
+      - go build -trimpath -o {{.BINARY}} .
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+    generates:
+      - '{{.BINARY}}'
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -f {{.BINARY}}
+
+  test:
+    desc: Run tests with race detection
+    cmds:
+      - go test -race -count=1 ./...
+
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run ./...
+
+  install:
+    desc: Build and install to GOPATH
+    deps: [build]
+    cmds:
+      - cp {{.BINARY}} $(go env GOPATH)/bin/{{.BINARY}}
+
+  release:
+    desc: Release using goreleaser
+    cmds:
+      - goreleaser release --clean
+
+  dagger:
+    desc: Run full Dagger CI pipeline
+    cmds:
+      - dagger call all --source=.
+
+  dagger:snapshot:
+    desc: Run Dagger release in snapshot mode (no publish)
+    cmds:
+      - dagger call release --source=. --github-token=env:GITHUB_TOKEN --snapshot=true

@@ -11,6 +11,8 @@ builds:
     goarch: [arm64]
     env:
       - CGO_ENABLED=1
+      - CC=zig cc -target aarch64-macos
+      - CXX=zig c++ -target aarch64-macos
     flags:
       - -trimpath
     ldflags:
