@@ -60,7 +60,7 @@ func (r *ProjectRepo) ListAll() ([]domain.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var projects []domain.Project
 	for rows.Next() {
@@ -94,7 +94,7 @@ func (r *ProjectRepo) MatchCurrent(dir string) (*domain.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		var p domain.Project

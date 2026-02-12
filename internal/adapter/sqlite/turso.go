@@ -33,8 +33,8 @@ func OpenTurso(dbPath, tursoURL, authToken string) (*TursoDB, error) {
 	db.SetMaxOpenConns(1)
 
 	if err := migrateProjects(db); err != nil {
-		db.Close()
-		connector.Close()
+		_ = db.Close()
+		_ = connector.Close()
 		return nil, fmt.Errorf("migrate projects: %w", err)
 	}
 
@@ -47,7 +47,7 @@ func openTursoLocal(path string) (*TursoDB, error) {
 		return nil, err
 	}
 	if err := migrateProjects(db); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("migrate projects: %w", err)
 	}
 	return &TursoDB{DB: db}, nil
@@ -62,9 +62,9 @@ func (t *TursoDB) Sync() error {
 }
 
 func (t *TursoDB) Close() error {
-	t.DB.Close()
+	_ = t.DB.Close()
 	if t.connector != nil {
-		t.connector.Close()
+		_ = t.connector.Close()
 	}
 	return nil
 }

@@ -17,6 +17,6 @@ func (s *ClearService) Clear(shellType string, shellPID int) (string, error) {
 	}
 
 	output := s.shell.FormatUnsets(shellType, domain.KeyNames(keys))
-	s.sessions.Delete(shellPID)
+	_ = s.sessions.Delete(shellPID)
 	return output, nil
 }

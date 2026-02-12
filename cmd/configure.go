@@ -83,11 +83,11 @@ var configureListCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "KEY\tVALUE")
+		_, _ = fmt.Fprintln(w, "KEY\tVALUE")
 		for _, s := range settings {
-			fmt.Fprintf(w, "%s\t%s\n", s.Key, s.Value)
+			_, _ = fmt.Fprintf(w, "%s\t%s\n", s.Key, s.Value)
 		}
-		w.Flush()
+		_ = w.Flush()
 	},
 }
 

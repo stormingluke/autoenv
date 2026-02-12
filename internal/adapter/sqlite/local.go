@@ -22,12 +22,11 @@ func OpenLocal(path string) (*sql.DB, error) {
 	db.SetMaxOpenConns(1)
 	var mode string
 	if err := db.QueryRow("PRAGMA journal_mode=WAL").Scan(&mode); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("set WAL mode: %w", err)
 	}
-	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
-		// libsql may not support this pragma; ignore
-	}
+	// libsql may not support this pragma; ignore error
+	_, _ = db.Exec("PRAGMA foreign_keys = ON")
 	return db, nil
 }
 
@@ -37,7 +36,7 @@ func OpenSessionsDB(path string) (*sql.DB, io.Closer, error) {
 		return nil, nil, err
 	}
 	if err := migrateSessions(db); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, nil, fmt.Errorf("migrate sessions: %w", err)
 	}
 	return db, &sessionsDB{db: db}, nil

@@ -34,7 +34,7 @@ func (s *ExportService) Export(shellType string, shellPID int, cwd string) (stri
 			return "", nil
 		}
 		output := s.shell.FormatUnsets(shellType, domain.KeyNames(loadedKeys))
-		s.sessions.Delete(shellPID)
+		_ = s.sessions.Delete(shellPID)
 		return output, nil
 	}
 
@@ -65,10 +65,10 @@ func (s *ExportService) Export(shellType string, shellPID int, cwd string) (stri
 	output := s.shell.FormatUnsets(shellType, diff.Unset) + s.shell.FormatExports(shellType, diff.Export)
 
 	if envFile != nil {
-		s.sessions.Upsert(shellPID, project.Path, envFile.Mtime)
-		s.sessions.SetKeys(shellPID, domain.KeyHashes(envFile))
+		_ = s.sessions.Upsert(shellPID, project.Path, envFile.Mtime)
+		_ = s.sessions.SetKeys(shellPID, domain.KeyHashes(envFile))
 	} else {
-		s.sessions.Delete(shellPID)
+		_ = s.sessions.Delete(shellPID)
 	}
 
 	return output, nil

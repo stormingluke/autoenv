@@ -27,8 +27,8 @@ func (s *LoadService) LoadProject(shellType string, shellPID int, projectPath, n
 
 	output := s.shell.FormatExports(shellType, envFile.Values)
 
-	s.sessions.Upsert(shellPID, projectPath, envFile.Mtime)
-	s.sessions.SetKeys(shellPID, domain.KeyHashes(envFile))
+	_ = s.sessions.Upsert(shellPID, projectPath, envFile.Mtime)
+	_ = s.sessions.SetKeys(shellPID, domain.KeyHashes(envFile))
 
 	return output, nil
 }

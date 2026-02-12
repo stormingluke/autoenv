@@ -1,6 +1,10 @@
 package main
 
-import "github.com/stormingluke/autoenv/cmd"
+import (
+	"fmt"
+
+	"github.com/stormingluke/autoenv/cmd"
+)
 
 var (
 	version = "dev"
@@ -9,5 +13,6 @@ var (
 )
 
 func main() {
+	cmd.Version = fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date)
 	cmd.Execute()
 }

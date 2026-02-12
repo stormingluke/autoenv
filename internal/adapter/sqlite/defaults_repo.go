@@ -42,7 +42,7 @@ func (r *DefaultsRepo) List() ([]domain.DefaultSetting, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var settings []domain.DefaultSetting
 	for rows.Next() {

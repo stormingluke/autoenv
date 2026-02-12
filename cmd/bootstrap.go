@@ -17,7 +17,7 @@ type closers []io.Closer
 func (c *closers) Add(closer io.Closer) { *c = append(*c, closer) }
 func (c closers) CloseAll() {
 	for i := len(c) - 1; i >= 0; i-- {
-		c[i].Close()
+		_ = c[i].Close()
 	}
 }
 

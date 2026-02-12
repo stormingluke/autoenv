@@ -7,6 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is set by main via ldflags.
+var Version = "dev"
+
 var rootCmd = &cobra.Command{
 	Use:   "autoenv",
 	Short: "Automatically load .env files into shell sessions",
@@ -14,8 +17,9 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	rootCmd.Version = Version
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

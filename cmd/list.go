@@ -31,15 +31,15 @@ var listCmd = &cobra.Command{
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-		fmt.Fprintln(w, "NAME\tPATH\tCREATED")
+		_, _ = fmt.Fprintln(w, "NAME\tPATH\tCREATED")
 		for _, p := range projects {
 			name := p.Name
 			if name == "" {
 				name = "-"
 			}
-			fmt.Fprintf(w, "%s\t%s\t%s\n", name, p.Path, p.CreatedAt)
+			_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", name, p.Path, p.CreatedAt)
 		}
-		w.Flush()
+		_ = w.Flush()
 	},
 }
 

@@ -58,7 +58,7 @@ func (r *SessionRepo) GetKeys(shellPID int) ([]domain.SessionKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var keys []domain.SessionKey
 	for rows.Next() {
@@ -76,7 +76,7 @@ func (r *SessionRepo) SetKeys(shellPID int, keys map[string]string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	_, err = tx.Exec(`DELETE FROM session_keys WHERE shell_pid = ?`, shellPID)
 	if err != nil {
@@ -89,7 +89,7 @@ func (r *SessionRepo) SetKeys(shellPID int, keys map[string]string) error {
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for name, hash := range keys {
 		if _, err := stmt.Exec(shellPID, name, hash); err != nil {
