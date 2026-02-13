@@ -2,6 +2,10 @@
 
 Automatically load .env files into your shell
 
+```bash
+curl -fsSL "https://github.com/stormingluke/autoenv/releases/latest/download/autoenv-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/').tar.gz" | sudo tar xz -C /usr/local/bin
+```
+
 ## What it does
 
 `autoenv` registers project directories with `.env` files and automatically manages environment variables as you navigate your filesystem. When you `cd` into a registered project, it exports the environment variables from your `.env` file. When you leave, it unsets them cleanly.
@@ -20,7 +24,7 @@ The tool uses shell hooks to detect directory changes, tracks file modifications
 
 ## Prerequisites
 
-- **Go 1.25+** (required)
+- **Go 1.25+** (required for building from source)
 - **CGO_ENABLED=1** (required - go-libsql uses C bindings)
 - **Task runner** (optional, for development tasks): https://taskfile.dev
 - **Turso account** (optional, for cloud sync)
@@ -30,7 +34,7 @@ The tool uses shell hooks to detect directory changes, tracks file modifications
 
 ### Pre-built binaries
 
-Download from GitHub Releases: https://github.com/stormingluke/autoenv/releases
+Download from [GitHub Releases](https://github.com/stormingluke/autoenv/releases).
 
 Available platforms: macOS ARM64, Linux AMD64
 
@@ -148,23 +152,29 @@ autoenv sync myrepo  # Uses stormingluke/myrepo
 ## Development
 
 ```bash
-task              # Run CI pipeline (lint, test, build)
-task build        # Build binary
-task test         # Run tests with race detection
+task              # Run lint and test locally
 task lint         # Run golangci-lint
-task dagger       # Run full Dagger CI pipeline
+task test         # Run tests with race detection
+task build        # Build binary
+task ci           # Run full Dagger CI pipeline (lint + test + build)
+task release      # Verify release via Dagger, tag patch version, push
+task release:minor  # Same but bumps minor version
+task release:major  # Same but bumps major version
 task --list       # See all available tasks
 ```
 
 ### Dagger pipeline
 
 ```bash
-dagger call all --source=.          # Lint + test + build (all platforms)
+dagger call all --source=.          # Lint + test + build (linux/amd64)
 dagger call lint --source=.         # Just lint
 dagger call test --source=.         # Just test
 dagger call build --source=.        # Build linux/amd64
-dagger call build --source=. --goos=darwin --goarch=arm64  # Cross-compile
 ```
+
+### Release workflow
+
+`task release` runs the Dagger release pipeline in snapshot mode to verify the build, then tags with an incremented patch version and pushes to main. When the tag reaches GitHub, the CI workflow builds native binaries for both Linux AMD64 and macOS ARM64 and creates a GitHub release.
 
 ## Architecture
 
