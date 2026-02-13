@@ -6,14 +6,14 @@ import (
 )
 
 type ExportService struct {
-	projects  port.ProjectReader
 	sessions  port.SessionRepository
 	envLoader port.EnvLoader
 	shell     port.ShellRenderer
 }
 
 func (s *ExportService) Export(shellType string, shellPID int, cwd string) (string, error) {
-	project, err := s.projects.MatchCurrent(cwd)
+	// Load .env directly from cwd (no project DB lookup)
+	envFile, err := s.envLoader.Load(cwd)
 	if err != nil {
 		return "", err
 	}
@@ -28,48 +28,38 @@ func (s *ExportService) Export(shellType string, shellPID int, cwd string) (stri
 		return "", err
 	}
 
-	// Not in a project
-	if project == nil {
+	// No .env in current directory
+	if envFile == nil {
 		if session == nil {
 			return "", nil
 		}
 		output := s.shell.FormatUnsets(shellType, domain.KeyNames(loadedKeys))
+		output += "unset _AUTOENV_ACTIVE\n"
 		_ = s.sessions.Delete(shellPID)
 		return output, nil
 	}
 
-	// In a project — load its .env
-	envFile, err := s.envLoader.Load(project.Path)
-	if err != nil {
-		return "", err
-	}
-
-	// Same project, unchanged .env — skip
-	if session != nil && session.ProjectPath == project.Path && envFile != nil && session.EnvFileMtime == envFile.Mtime {
+	// Same directory, unchanged .env — skip
+	if session != nil && session.ProjectPath == cwd && session.EnvFileMtime == envFile.Mtime {
 		return "", nil
 	}
 
 	diff := domain.Diff(envFile, loadedKeys)
 
-	// Switching projects — unset old keys not in new .env
-	if session != nil && session.ProjectPath != project.Path {
+	// Switching directories — unset old keys not in new .env
+	if session != nil && session.ProjectPath != cwd {
 		for _, k := range loadedKeys {
-			if envFile == nil {
-				diff.Unset = append(diff.Unset, k.KeyName)
-			} else if _, exists := envFile.Values[k.KeyName]; !exists {
+			if _, exists := envFile.Values[k.KeyName]; !exists {
 				diff.Unset = append(diff.Unset, k.KeyName)
 			}
 		}
 	}
 
 	output := s.shell.FormatUnsets(shellType, diff.Unset) + s.shell.FormatExports(shellType, diff.Export)
+	output += "export _AUTOENV_ACTIVE=1\n"
 
-	if envFile != nil {
-		_ = s.sessions.Upsert(shellPID, project.Path, envFile.Mtime)
-		_ = s.sessions.SetKeys(shellPID, domain.KeyHashes(envFile))
-	} else {
-		_ = s.sessions.Delete(shellPID)
-	}
+	_ = s.sessions.Upsert(shellPID, cwd, envFile.Mtime)
+	_ = s.sessions.SetKeys(shellPID, domain.KeyHashes(envFile))
 
 	return output, nil
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -14,20 +15,28 @@ var exportCmd = &cobra.Command{
 	Args:   cobra.ExactArgs(1),
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		b, err := bootstrap()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
-			return
-		}
-		defer b.cc.CloseAll()
-
 		cwd, err := os.Getwd()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			return
 		}
 
-		output, err := b.app.Export.Export(args[0], getShellPID(), cwd)
+		// Fast path: no .env and no active session → nothing to do
+		_, statErr := os.Stat(filepath.Join(cwd, ".env"))
+		hasEnv := statErr == nil
+		hasSession := os.Getenv("_AUTOENV_ACTIVE") != ""
+		if !hasEnv && !hasSession {
+			return
+		}
+
+		// Lightweight bootstrap — sessions DB only, no Turso
+		a, cc, err := bootstrapLight()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
+			return
+		}
+		defer cc.CloseAll()
+
+		output, err := a.Export.Export(args[0], getShellPID(), cwd)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "autoenv: %v\n", err)
 			return

@@ -4,7 +4,6 @@ import "github.com/stormingluke/autoenv/internal/port"
 
 type App struct {
 	Export    *ExportService
-	Load     *LoadService
 	Clear    *ClearService
 	List     *ListService
 	Sync     *SyncService
@@ -22,8 +21,7 @@ type Deps struct {
 
 func New(d Deps) *App {
 	return &App{
-		Export:    &ExportService{projects: d.Projects, sessions: d.Sessions, envLoader: d.EnvLoader, shell: d.Shell},
-		Load:     &LoadService{projects: d.Projects, sessions: d.Sessions, envLoader: d.EnvLoader, shell: d.Shell},
+		Export:    &ExportService{sessions: d.Sessions, envLoader: d.EnvLoader, shell: d.Shell},
 		Clear:    &ClearService{sessions: d.Sessions, shell: d.Shell},
 		List:     &ListService{projects: d.Projects},
 		Sync:     &SyncService{projects: d.Projects, envLoader: d.EnvLoader, syncer: d.Syncer, config: d.Config},
