@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/stormingluke/autoenv/internal/adapter/envfile"
 	"github.com/stormingluke/autoenv/internal/adapter/shell"
@@ -33,6 +34,8 @@ var rootCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "autoenv: no .env file in %s\n", cwd)
 			os.Exit(1)
 		}
+
+		_ = godotenv.Load(envFile.Path)
 
 		renderer := shell.NewRenderer()
 		fmt.Print(renderer.FormatExports("zsh", envFile.Values))
