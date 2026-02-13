@@ -7,6 +7,8 @@ import (
 	"dagger/autoenv/internal/dagger"
 )
 
+const goVersion = "1.25.7"
+
 type Autoenv struct{}
 
 // Lint runs golangci-lint on the source code
@@ -31,7 +33,7 @@ func (m *Autoenv) Build(ctx context.Context, source *dagger.Directory) *dagger.F
 		File("/src/autoenv")
 }
 
-// Release runs GoReleaser to create a GitHub release (linux/amd64)
+// Release runs GoReleaser to create a GitHub release (linux/amd64 + darwin/arm64)
 func (m *Autoenv) Release(
 	ctx context.Context,
 	source *dagger.Directory,
@@ -45,8 +47,7 @@ func (m *Autoenv) Release(
 		args = append(args, "--snapshot")
 	}
 
-	return m.amd64(source).
-		WithExec([]string{"go", "install", "github.com/goreleaser/goreleaser/v2@latest"}).
+	return m.releaseCtr(source).
 		WithSecretVariable("GITHUB_TOKEN", githubToken).
 		WithExec(args).
 		Stdout(ctx)
@@ -63,13 +64,13 @@ func (m *Autoenv) All(ctx context.Context, source *dagger.Directory) (string, er
 	if _, err := m.Build(ctx, source).Sync(ctx); err != nil {
 		return "", err
 	}
-	// Verify goreleaser config and build without publishing
+	// Verify goreleaser config and linux build without publishing
 	ctr := m.amd64(source).
 		WithExec([]string{"go", "install", "github.com/goreleaser/goreleaser/v2@latest"})
 	if _, err := ctr.WithExec([]string{"goreleaser", "check"}).Stdout(ctx); err != nil {
 		return "", err
 	}
-	if _, err := ctr.WithExec([]string{"goreleaser", "build", "--snapshot", "--clean"}).Stdout(ctx); err != nil {
+	if _, err := ctr.WithExec([]string{"goreleaser", "build", "--id", "autoenv-linux", "--snapshot", "--clean"}).Stdout(ctx); err != nil {
 		return "", err
 	}
 	return "All CI checks passed.", nil
@@ -78,7 +79,7 @@ func (m *Autoenv) All(ctx context.Context, source *dagger.Directory) (string, er
 // base returns a Go container on the native platform (fast for lint/test)
 func (m *Autoenv) base(source *dagger.Directory) *dagger.Container {
 	return dag.Container().
-		From("golang:1.25-bookworm").
+		From("golang:"+goVersion+"-bookworm").
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src").
 		WithEnvVariable("CGO_ENABLED", "1")
@@ -87,7 +88,16 @@ func (m *Autoenv) base(source *dagger.Directory) *dagger.Container {
 // amd64 returns a Go container pinned to linux/amd64 for native compilation
 func (m *Autoenv) amd64(source *dagger.Directory) *dagger.Container {
 	return dag.Container(dagger.ContainerOpts{Platform: "linux/amd64"}).
-		From("golang:1.25-bookworm").
+		From("golang:"+goVersion+"-bookworm").
+		WithMountedDirectory("/src", source).
+		WithWorkdir("/src").
+		WithEnvVariable("CGO_ENABLED", "1")
+}
+
+// releaseCtr returns a goreleaser-cross container with osxcross for cross-platform releases
+func (m *Autoenv) releaseCtr(source *dagger.Directory) *dagger.Container {
+	return dag.Container(dagger.ContainerOpts{Platform: "linux/amd64"}).
+		From("ghcr.io/goreleaser/goreleaser-cross:v1.25.7-v2.13.3").
 		WithMountedDirectory("/src", source).
 		WithWorkdir("/src").
 		WithEnvVariable("CGO_ENABLED", "1")

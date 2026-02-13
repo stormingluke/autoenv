@@ -3,7 +3,8 @@
 Automatically load .env files into your shell
 
 ```bash
-curl -fsSL "https://github.com/stormingluke/autoenv/releases/latest/download/autoenv-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/').tar.gz" | sudo tar xz -C /usr/local/bin
+# From source (any platform)
+CGO_ENABLED=1 go install github.com/stormingluke/autoenv@latest
 ```
 
 ## What it does
@@ -36,7 +37,7 @@ The tool uses shell hooks to detect directory changes, tracks file modifications
 
 Download from [GitHub Releases](https://github.com/stormingluke/autoenv/releases).
 
-Available platforms: macOS ARM64, Linux AMD64
+Available platforms: Linux AMD64, macOS ARM64
 
 ### Install from source
 

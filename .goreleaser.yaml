@@ -22,9 +22,11 @@ builds:
   - id: autoenv-darwin
     binary: autoenv
     goos: [darwin]
-    goarch: [amd64, arm64]
+    goarch: [arm64]
     env:
       - CGO_ENABLED=1
+      - CC=oa64-clang
+      - CXX=oa64-clang++
     flags:
       - -trimpath
     ldflags:
