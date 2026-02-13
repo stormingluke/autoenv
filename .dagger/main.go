@@ -3,6 +3,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"dagger/autoenv/internal/dagger"
 )
@@ -26,10 +28,21 @@ func (m *Autoenv) Test(ctx context.Context, source *dagger.Directory) (string, e
 		Stdout(ctx)
 }
 
-// Build compiles the linux/amd64 binary
-func (m *Autoenv) Build(ctx context.Context, source *dagger.Directory) *dagger.File {
+// Build compiles the linux/amd64 binary with optional version info
+func (m *Autoenv) Build(
+	ctx context.Context,
+	source *dagger.Directory,
+	// +optional
+	// +default="dev"
+	version string,
+	// +optional
+	// +default="none"
+	commit string,
+) *dagger.File {
+	ldflags := fmt.Sprintf("-s -w -X main.version=%s -X main.commit=%s -X main.date=%s",
+		version, commit, time.Now().UTC().Format(time.RFC3339))
 	return m.amd64(source).
-		WithExec([]string{"go", "build", "-trimpath", "-o", "autoenv", "."}).
+		WithExec([]string{"go", "build", "-trimpath", "-ldflags", ldflags, "-o", "autoenv", "."}).
 		File("/src/autoenv")
 }
 
@@ -61,7 +74,7 @@ func (m *Autoenv) All(ctx context.Context, source *dagger.Directory) (string, er
 	if _, err := m.Test(ctx, source); err != nil {
 		return "", err
 	}
-	if _, err := m.Build(ctx, source).Sync(ctx); err != nil {
+	if _, err := m.Build(ctx, source, "dev", "none").Sync(ctx); err != nil {
 		return "", err
 	}
 	// Verify goreleaser config and linux build without publishing
