@@ -52,7 +52,7 @@ func (m *Autoenv) Release(
 		Stdout(ctx)
 }
 
-// All runs lint, test, and build
+// All runs lint, test, build, and verifies goreleaser
 func (m *Autoenv) All(ctx context.Context, source *dagger.Directory) (string, error) {
 	if _, err := m.Lint(ctx, source); err != nil {
 		return "", err
@@ -61,6 +61,15 @@ func (m *Autoenv) All(ctx context.Context, source *dagger.Directory) (string, er
 		return "", err
 	}
 	if _, err := m.Build(ctx, source).Sync(ctx); err != nil {
+		return "", err
+	}
+	// Verify goreleaser config and build without publishing
+	ctr := m.amd64(source).
+		WithExec([]string{"go", "install", "github.com/goreleaser/goreleaser/v2@latest"})
+	if _, err := ctr.WithExec([]string{"goreleaser", "check"}).Stdout(ctx); err != nil {
+		return "", err
+	}
+	if _, err := ctr.WithExec([]string{"goreleaser", "build", "--snapshot", "--clean"}).Stdout(ctx); err != nil {
 		return "", err
 	}
 	return "All CI checks passed.", nil
