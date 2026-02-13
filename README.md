@@ -8,9 +8,12 @@
   <img src="https://img.shields.io/github/go-mod/go-version/stormingluke/autoenv?style=flat-square&color=00ADD8" alt="Go Version">
 </p>
 
-```bash
+```zsh
 # Install from GitHub releases (linux/amd64, macOS/arm64)
 curl -fsSL https://raw.githubusercontent.com/stormingluke/autoenv/main/install.sh | bash
+
+# Load autoenv in your shell (add to ~/.zshrc)
+eval "$(autoenv hook zsh)"
 
 # Or install from source (any platform, requires CGO)
 CGO_ENABLED=1 go install github.com/stormingluke/autoenv@latest
