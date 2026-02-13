@@ -26,7 +26,7 @@ func Load() *Config {
 }
 
 func (c *Config) EnsureDir() error {
-	return os.MkdirAll(c.Dir, 0o755)
+	return os.MkdirAll(c.Dir, 0o750)
 }
 
 func configDir() string {

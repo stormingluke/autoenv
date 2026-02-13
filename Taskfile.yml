@@ -2,18 +2,28 @@ version: '3'
 
 vars:
   BINARY: autoenv
+  GITHUB_TOKEN:
+    sh: gh auth token 2>/dev/null || echo ""
 
 env:
   CGO_ENABLED: '1'
 
 tasks:
   default:
-    desc: Run CI pipeline (lint, test, build)
-    aliases: [ci]
+    desc: Run lint and test locally
     cmds:
       - task: lint
       - task: test
-      - task: build
+
+  lint:
+    desc: Run golangci-lint locally
+    cmds:
+      - golangci-lint run ./...
+
+  test:
+    desc: Run tests with race detection
+    cmds:
+      - go test -race -count=1 ./...
 
   build:
     desc: Build the autoenv binary
@@ -31,33 +41,61 @@ tasks:
     cmds:
       - rm -f {{.BINARY}}
 
-  test:
-    desc: Run tests with race detection
-    cmds:
-      - go test -race -count=1 ./...
-
-  lint:
-    desc: Run golangci-lint
-    cmds:
-      - golangci-lint run ./...
-
   install:
     desc: Build and install to GOPATH
     deps: [build]
     cmds:
       - cp {{.BINARY}} $(go env GOPATH)/bin/{{.BINARY}}
 
-  release:
-    desc: Release using goreleaser
-    cmds:
-      - goreleaser release --clean
-
-  dagger:
-    desc: Run full Dagger CI pipeline
+  ci:
+    desc: Run full Dagger CI pipeline (lint + test + build)
     cmds:
       - dagger call all --source=.
 
-  dagger:snapshot:
-    desc: Run Dagger release in snapshot mode (no publish)
+  release:
+    desc: Run Dagger release snapshot, tag patch version, push to main
+    env:
+      GITHUB_TOKEN: '{{.GITHUB_TOKEN}}'
     cmds:
       - dagger call release --source=. --github-token=env:GITHUB_TOKEN --snapshot=true
+      - |
+        TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        MAJOR=$(echo $TAG | sed 's/^v//' | cut -d. -f1)
+        MINOR=$(echo $TAG | sed 's/^v//' | cut -d. -f2)
+        PATCH=$(echo $TAG | sed 's/^v//' | cut -d. -f3)
+        PATCH=$((PATCH + 1))
+        NEW="v${MAJOR}.${MINOR}.${PATCH}"
+        echo "Tagging ${NEW} (was ${TAG})"
+        git tag "${NEW}"
+        git push origin main --tags
+
+  release:minor:
+    desc: Run Dagger release snapshot, tag minor version, push to main
+    env:
+      GITHUB_TOKEN: '{{.GITHUB_TOKEN}}'
+    cmds:
+      - dagger call release --source=. --github-token=env:GITHUB_TOKEN --snapshot=true
+      - |
+        TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        MAJOR=$(echo $TAG | sed 's/^v//' | cut -d. -f1)
+        MINOR=$(echo $TAG | sed 's/^v//' | cut -d. -f2)
+        MINOR=$((MINOR + 1))
+        NEW="v${MAJOR}.${MINOR}.0"
+        echo "Tagging ${NEW} (was ${TAG})"
+        git tag "${NEW}"
+        git push origin main --tags
+
+  release:major:
+    desc: Run Dagger release snapshot, tag major version, push to main
+    env:
+      GITHUB_TOKEN: '{{.GITHUB_TOKEN}}'
+    cmds:
+      - dagger call release --source=. --github-token=env:GITHUB_TOKEN --snapshot=true
+      - |
+        TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        MAJOR=$(echo $TAG | sed 's/^v//' | cut -d. -f1)
+        MAJOR=$((MAJOR + 1))
+        NEW="v${MAJOR}.0.0"
+        echo "Tagging ${NEW} (was ${TAG})"
+        git tag "${NEW}"
+        git push origin main --tags

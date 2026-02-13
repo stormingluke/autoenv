@@ -1,0 +1,25 @@
+version: "2"
+
+linters:
+  enable:
+    - gosec
+    - staticcheck
+    - errcheck
+    - govet
+    - ineffassign
+    - unused
+    - bodyclose
+    - sqlclosecheck
+    - nilerr
+    - gocritic
+
+linters-settings:
+  gosec:
+    excludes:
+      - G304 # file inclusion via variable — expected for .env loading
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+    disabled-checks:
+      - hugeParam # not relevant for this project size

@@ -22,7 +22,7 @@ func (s *SecretSyncer) Sync(repo string, secrets map[string]string) error {
 	}
 
 	for key, value := range secrets {
-		cmd := exec.Command("gh", "secret", "set", key,
+		cmd := exec.Command("gh", "secret", "set", key, //nolint:gosec // args are passed as separate elements, not shell-interpreted
 			"--repo", repo,
 			"--body", value,
 		)
