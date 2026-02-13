@@ -121,7 +121,7 @@ Now cd into your project directory - .env variables are automatically exported. 
 | Variable | Description |
 |----------|-------------|
 | `AUTOENV_CONFIG_DIR` | Override config directory (default: `~/.config/autoenv`) |
-| `AUTOENV_TURSO_URL` | Turso database URL for cloud sync |
+| `AUTOENV_TURSO_DATABASE_URL` | Turso database URL for cloud sync |
 | `AUTOENV_TURSO_AUTH_TOKEN` | Turso authentication token |
 | `AUTOENV_SHELL_PID` | Override shell PID detection (used internally) |
 
@@ -137,7 +137,7 @@ Follows XDG Base Directory spec: respects `XDG_CONFIG_HOME` if set.
 
 ## Cloud Sync with Turso
 
-When you set `AUTOENV_TURSO_URL` and `AUTOENV_TURSO_AUTH_TOKEN`, your project registry automatically syncs to Turso cloud. The tool uses the embedded replica pattern - data is stored locally first for fast access, then synchronized to the cloud in the background.
+When you set `AUTOENV_TURSO_DATABASE_URL` and `AUTOENV_TURSO_AUTH_TOKEN`, your project registry automatically syncs to Turso cloud. The tool uses the embedded replica pattern - data is stored locally first for fast access, then synchronized to the cloud in the background.
 
 Your session state (which shell has which variables loaded) stays local to each machine. Only the project registry is synced.
 

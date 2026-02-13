@@ -20,7 +20,7 @@ func Load() *Config {
 		Dir:            dir,
 		ProjectsDBPath: filepath.Join(dir, "projects.db"),
 		SessionsDBPath: filepath.Join(dir, "sessions.db"),
-		TursoURL:       os.Getenv("AUTOENV_TURSO_URL"),
+		TursoURL:       os.Getenv("AUTOENV_TURSO_DATABASE_URL"),
 		TursoAuthToken: os.Getenv("AUTOENV_TURSO_AUTH_TOKEN"),
 	}
 }
