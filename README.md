@@ -1,9 +1,18 @@
-# autoenv
+<p align="center">
+  <img src="images/banner.svg" alt="autoenv" width="700">
+</p>
 
-Automatically load .env files into your shell
+<p align="center">
+  <a href="https://github.com/stormingluke/autoenv/releases/latest"><img src="https://img.shields.io/github/v/release/stormingluke/autoenv?style=flat-square&color=27c93f" alt="Release"></a>
+  <a href="https://github.com/stormingluke/autoenv/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/stormingluke/autoenv/ci.yml?branch=main&style=flat-square" alt="CI"></a>
+  <img src="https://img.shields.io/github/go-mod/go-version/stormingluke/autoenv?style=flat-square&color=00ADD8" alt="Go Version">
+</p>
 
 ```bash
-# From source (any platform)
+# Install from GitHub releases (linux/amd64, macOS/arm64)
+curl -fsSL https://raw.githubusercontent.com/stormingluke/autoenv/main/install.sh | bash
+
+# Or install from source (any platform, requires CGO)
 CGO_ENABLED=1 go install github.com/stormingluke/autoenv@latest
 ```
 
@@ -33,11 +42,13 @@ The tool uses shell hooks to detect directory changes, tracks file modifications
 
 ## Installation
 
-### Pre-built binaries
+### One-line install (recommended)
 
-Download from [GitHub Releases](https://github.com/stormingluke/autoenv/releases).
+```bash
+curl -fsSL https://raw.githubusercontent.com/stormingluke/autoenv/main/install.sh | bash
+```
 
-Available platforms: Linux AMD64, macOS ARM64
+Installs to `~/.local/bin/` and prints shell setup instructions. Supports **Linux AMD64** and **macOS ARM64**.
 
 ### Install from source
 
