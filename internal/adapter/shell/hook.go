@@ -13,9 +13,19 @@ func HookScript(shellType string) (string, error) {
 	}
 }
 
-const zshHook = `_autoenv_hook() {
+const zshHook = `autoenv() {
+  case "${1:-}" in
+    load|clear|"")
+      eval "$(command autoenv "$@")"
+      ;;
+    *)
+      command autoenv "$@"
+      ;;
+  esac
+}
+_autoenv_hook() {
   if [[ -f .env ]] || [[ -n "$_AUTOENV_ACTIVE" ]]; then
-    eval "$(autoenv export zsh)"
+    eval "$(command autoenv export zsh)"
   fi
 }
 typeset -ag chpwd_functions
@@ -25,10 +35,20 @@ fi
 _autoenv_hook
 `
 
-const bashHook = `_autoenv_hook() {
+const bashHook = `autoenv() {
+  case "${1:-}" in
+    load|clear|"")
+      eval "$(command autoenv "$@")"
+      ;;
+    *)
+      command autoenv "$@"
+      ;;
+  esac
+}
+_autoenv_hook() {
   local prev_exit=$?
   if [[ -f .env ]] || [[ -n "$_AUTOENV_ACTIVE" ]]; then
-    eval "$(autoenv export bash)"
+    eval "$(command autoenv export bash)"
   fi
   return $prev_exit
 }
